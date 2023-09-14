@@ -1,0 +1,34 @@
+---
+title: "Introduction to Quarto"
+format: html
+bibliography: references.bib
+---
+
+# This is a header level 1
+
+## This is a header level 2
+
+| Pollutant | Concentration | value |
+|-----------|---------------|-------|
+| x         | high          |       |
+| y         | low           |       |
+| z         | none          |       |
+
+### this is a header level 3
+
+\*\* this is bold text\*\*
+
+Write justplain text
+
+[Link](https://www.epa.gov/wqs-tech/water-quality-standards-regulations-california)
+
+adding citation [@oke2020]
+
+
+```{r}
+4+4
+x <- 3*4
+
+```
+
+

@@ -1,0 +1,71 @@
+---
+title: "Mini Literate Analysis"
+format: html
+---
+
+## Introduction
+
+### About this data
+
+his data set contains North Pole Environmental Observatory Bottle Chemistry data.
+
+[data link](https://arcticdata.io/catalog/view/doi%3A10.18739%2FA25T3FZ8X#urn%3Auuid%3A35ad7624-b159-4e29-a700-0c0770419941)
+
+### Set up
+
+```{r}
+library(readr)
+```
+
+### Read in Data
+
+```{r}
+#| warning: false
+bg_chem <- read_csv("data/BGchem2008data.csv")
+
+```
+
+- Explore data
+```{r}
+#| echo: false
+#| eval: false
+ 
+colnames(bg_chem)
+
+str(bg_chem)
+
+unique(bg_chem$Date)
+```
+
+
+## Analysis
+
+### Calculate summary statistics
+```{r}
+nitrate <- mean(bg_chem$NO3)
+
+nitrite <- mean(bg_chem$NO2)
+
+amm <- mean(bg_chem$NH4)
+
+phos <- mean(bg_chem$P)
+```
+
+
+### Calculate the Redfield Ratio
+
+```{r}
+ratio <- (nitrate + nitrite + amm)/phos
+```
+
+### Plot
+```{r}
+#| echo: false
+plot(bg_chem$P, bg_chem$NO3 + bg_chem$NO2 + bg_chem$NH4)
+```
+
+
+
+## Conclusion
+
+The Redfield ratio for this data set is approximately `r round(ratio)`
