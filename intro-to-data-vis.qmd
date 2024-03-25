@@ -2,3 +2,113 @@
 title: "Intro-to-data-vis"
 format: html
 ---
+
+## set up
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(janitor)
+library(scales)
+library(leaflet)
+library(DT)
+```
+
+## Read data
+
+```{r}
+escape_raw <- read_csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e")
+
+```
+
+```{r}
+colnames(escape_raw)
+glimpse(escape_raw)
+range(escape_raw$sampleDate)
+unique(escape_raw$Species)
+```
+
+## Getting data ready for visualizing
+
+Using 'janitor' to clean column names
+```{r}
+escape <- escape_raw %>%
+  janitor::clean_names()
+
+colnames(escape)
+
+```
+
+Calculating annual escapement by region and salmon species
+
+```{r}
+annual_esc <- escape %>%
+  separate(sample_date, c("year", "month", "day"), sep = "-") %>%
+  mutate(year = as.numeric(year)) %>%
+  group_by(species,sasap_region, year) %>%
+    summarise(escapement = sum(daily_count)) %>%
+    filter(species %in% c("Chinook", "Sockeye", "Chum", "Coho", "Pink"))
+  
+  unique(annual_esc$species)
+```
+
+
+## Plotting data
+
+```{r}
+ggplot(data = annual_esc, mapping = aes(x = species,
+                                        y = escapement)) +
+  geom_col()
+```
+
+Plot with blue bars
+
+```{r}
+ggplot(annual_esc,
+        aes(x = species,
+            y = escapement)) +
+  geom_col(fill = "blue")
+```
+
+
+Fill by Region
+
+```{r}
+ggplot(annual_esc,
+        aes(x = species,
+            y = escapement,
+            fill = sasap_region)) +
+  geom_col(fill = "blue")
+```
+
+
+## Creating multiple plots
+
+```{r}
+annual_esc_2000s <-annual_esc %>%
+  filter(year %in% c(2000:2016))
+
+unique(annual_esc_2000s$year)
+```
+
+Facet plot
+## Plot with facets
+```{r}
+
+ggplot(annual_esc_2000s,
+       aes(x = year,
+           y = escapement,
+           color = Species)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap( ~ sasap_region,
+                scales = "free_y") +
+  labs(title = "Annual Salmon Escapements by Region",
+       y = "Escapement",
+       x = "Year",
+       color = "Species")+
+ theme_bw()
+```
+
