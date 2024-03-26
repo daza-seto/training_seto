@@ -5,7 +5,7 @@ format: html
 
 ##Course outline
 
-- intro to data viz
+- intro to data viz [here](Intro_to_Quarto_2.html)
 - Accessing survey data
 
 Check documentation of Quarto [here](https://quarto.org).
