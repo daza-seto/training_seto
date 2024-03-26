@@ -1,0 +1,75 @@
+---
+title: "Mini Literate Analysis"
+format: html
+---
+
+## Introduction
+
+### About this data
+
+ 
+### Set up
+
+```{r}
+library(readr)
+library(vroom)
+library(janitor)
+```
+
+### Read in Data
+
+```{r}
+#| warning: false
+
+data <- vroom("data/gama_gama_dom_statewide_v2.txt",delim = "\t")
+```
+
+- Explore data
+```{r}
+#| echo: false
+#| eval: false
+ 
+#colnames(bg_chem)
+
+#str(bg_chem)
+
+#unique(bg_chem$Date)
+```
+
+
+## Analysis
+
+### Calculate summary statistics
+```{r}
+lat <- mean(bg_chem$lat)
+
+lon <- mean(bg_chem$lon)
+
+depth_m <- mean(bg_chem$Depth_m)
+
+NO3 <- mean(bg_chem$`NO3-N_mgL`)
+
+TDS <- mean(bg_chem$TDS_mgL)
+
+
+
+```
+
+
+### Calculate the Redfield Ratio
+
+```{r}
+
+```
+
+### Plot
+```{r}
+#| echo: false
+plot(bg_chem$P, bg_chem$NO3 + bg_chem$NO2 + bg_chem$NH4)
+```
+
+
+
+## Conclusion
+
+The Redfield ratio for this data set is approximately `r round(ratio)`

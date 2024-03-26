@@ -1,0 +1,152 @@
+---
+title: "visualizing-spatial-data"
+format: html
+editor: visual
+---
+
+```{r}
+# General Packages
+library(tidyr)     # data wrangling
+library(dplyr)     # data wrangling
+library(readr)     # read in files
+library(ggplot2)   # plotting and mapping
+library(patchwork) # combining maps/plots
+library(cowplot)   # combining plots to make an inset map
+
+# Spatial Packages
+library(sf)        # manipulating spatial data
+library(ggspatial) # retrieving basemap, adding scale and arrowbar
+library(maptiles)  # retrieving basemap
+library(terra)     # working with raster data
+library(tidyterra) # functions for working with raster
+
+# Data 
+library(tigris)  # shapefiles with various administrative boundaries and roads
+```
+
+```{r}
+# read in data from .csv file
+site_df <- read_csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3A7161c08c-79b7-4970-94b4-7d6e4fcfcc03")
+
+site_df <- site_df %>% 
+    select(state, desert, site_code, long, lat, ndvi_2023, MAT, MAP) 
+
+
+```
+
+```{r}
+ecoreg_sf <- read_sf("data/ca_eco_l3.shp")
+head(ecoreg_sf)
+```
+
+```{r}
+states_sf <- tigris::states(progress_bar = FALSE)
+```
+
+```{r}
+site_sf <- st_as_sf(site_df, coords = c("long","lat"), crs = "EPSG:4326")
+
+st_crs(ecoreg_sf)
+st_crs(states_sf)
+
+
+```
+
+
+Transform the sites and state data into the same CRS as the ecoregion data
+```{r}
+states_proj_sf <- st_transform(states_sf, crs = st_crs(ecoreg_sf))
+site_proj_sf <- st_transform(site_sf, crs = crs(ecoreg_sf))
+```
+
+```{r}
+ca_proj_sf <- states_proj_sf %>%
+  dplyr::filter(NAME == "California")
+
+site_ca_proj_sf <- site_proj_sf %>% 
+  st_filter(ca_proj_sf, .predicate = st_covered_by)
+
+unique(site_ca_proj_sf$state)
+
+ggplot(ca_proj_sf) + geom_sf())
+```
+Join in data fro the ecoregion to the site data frame
+
+
+
+```{r}
+ggplot(ecoreg_sf) + geom_sf()
+
+site_ecoreg_sf <- st_join(site_ca_proj_sf, ecoreg_sf, join = st_intersects)
+
+colnames(site_ecoreg_sf)
+```
+
+Visualize our ecoregion data site data
+```{r}
+ggplot(data = ca_proj_sf) + 
+  geom_sf()
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = ca_proj_sf) + 
+  geom_sf(data = ecoreg_sf) +
+  geom_sf(data = site_ca_proj_sf)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = ca_proj_sf, fill = NA) +
+  geom_sf(data = ecoreg_sf, aes(fill = US_L3NAME), color = "white")+
+  geom_sf(data = site_ca_proj_sf) +
+  scake_fill_discrete(name = "Ecoregion") +
+  theme_bw()
+```
+
+
+
+Add in a basemap
+```{r}
+map_nonase <- ggplot() +
+  geom_sf(data = ca_proj_sf, fill = NA) +
+  geom_sf(data = site_ecoreg_sf, aes(color = US_L3NAME)) +
+  scale_color_discrete(name = "Level 3 Ecoregion") +
+  theme_bw()
+```
+
+
+```{r}
+map_wnase <- ggplot() +
+ggspatial::annotation_map_tile(type = "osm", zoom = 6)+
+  geom_sf(data = ca_proj_sf, fill = NA) +
+  geom_sf(data = site_ecoreg_sf, aes(color = US_L3NAME)) +
+  scale_color_discrete(name = "Level 3 Ecoregion") +
+  theme_bw()
+```
+
+
+
+```{r}
+# the OpenTopo map tile provider
+open_topo <- "https://a.tile.opentopomap.org/${z}/${x}/${y}.png"
+
+ggplot() + # specify data here to set CRS 
+  ggspatial::annotation_map_tile(
+    type = open_topo,
+    zoom = 7
+    ) + 
+  geom_sf(data = ca_proj_sf, fill = NA, linewidth = 2, color = "black") + # don't need to specify data here since we did in ggplot call
+  geom_sf(
+    data = site_ecoreg_sf, 
+    aes(color = US_L3NAME) 
+    ) +
+  scale_color_discrete(name = "Level 3 Ecoregion") +
+  guides(fill = guide_legend(ncol = 1, title.position = "top")) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.direction = "vertical"
+  )
+```
+
